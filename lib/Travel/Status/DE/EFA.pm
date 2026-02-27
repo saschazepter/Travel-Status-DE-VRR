@@ -237,6 +237,7 @@ sub new {
 			itdDateYear       => $dt->year,
 			itdTimeHour       => $dt->hour,
 			itdTimeMinute     => $dt->minute,
+			limit             => $opt{num_results} // 40,
 			name_dm           =>
 			  uri_escape( encode( $encoding, $opt{name} ), '^A-Za-z0-9-._~ ' ),
 		};
@@ -813,6 +814,10 @@ B<stop> (stop/station name).
 
 Request departures for the date/time specified by I<DateTime object>.
 Default: now.
+
+=item B<num_results> => I<n>
+
+Request up to I<n> departures. Default: 40.
 
 =item B<full_routes> => B<0>|B<1>
 

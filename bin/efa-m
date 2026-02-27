@@ -18,6 +18,7 @@ my $service = 'VRR';
 my $efa_url;
 my $use_cache = 1;
 my $cache;
+my $num_results = 40;
 my ( $json_output, $raw_json_output );
 my ( $date,        $time, $input_type, $list_lines, $offset, $relative_times );
 my ( $full_routes, $filter_via, $show_jid );
@@ -47,6 +48,7 @@ GetOptions(
 	'L|linelist'                    => \$list_lines,
 	'list'                          => \$list_services,
 	'm|mot=s@'                      => \@grep_mots,
+	'n|num-results=i'               => \$num_results,
 	'o|offset=i'                    => \$offset,
 	'O|output=s@'                   => \@edata_pre,
 	'p|platform=s@'                 => \@grep_platforms,
@@ -172,6 +174,7 @@ sub new_efa {
 		full_routes    => $full_routes,
 		place          => $place,
 		name           => $input,
+		num_results    => $num_results,
 		coord          => $coord,
 		stopfinder     => $stopfinder,
 		stopseq        => $stopseq,
@@ -747,6 +750,10 @@ this option may be repeated).
 The following departure types ("modes of transport") are supported:
 zug, s-bahn, u-bahn, stadtbahn, tram, stadtbus, regionalbus, schnellbus,
 seilbahn, schiff, ast, sonstige
+
+=item B<-n>, B<--num-results> I<n> (monitor)
+
+Request up to I<n> departures.
 
 =item B<-o>, B<--offset> I<minutes> (monitor)
 
