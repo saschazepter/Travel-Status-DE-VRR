@@ -456,11 +456,14 @@ sub show_results {
 
 		my @output_line;
 		my $platform = $d->platform;
-		my $dtime    = (
+		my $dtime
+		  = $d->datetime
+		  ? (
 			$relative_times
 			? sprintf( '%2d min', $d->countdown )
 			: $d->datetime->strftime('%H:%M')
-		);
+		  )
+		  : q{??:??};
 
 		if (
 			   ( @grep_lines and none { $d->line eq $_ } @grep_lines )

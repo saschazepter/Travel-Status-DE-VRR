@@ -34,27 +34,41 @@ sub new {
 	my ( $sched_dt, $real_dt );
 
 	if ( my $dt = $departure->{dateTime} ) {
-		$sched_dt = DateTime->new(
-			year      => $dt->{year},
-			month     => $dt->{month},
-			day       => $dt->{day},
-			hour      => $dt->{hour},
-			minute    => $dt->{minute},
-			second    => $dt->{second} // 0,
-			time_zone => 'Europe/Berlin',
-		);
+		eval {
+			$sched_dt = DateTime->new(
+				year      => $dt->{year},
+				month     => $dt->{month},
+				day       => $dt->{day},
+				hour      => $dt->{hour},
+				minute    => $dt->{minute},
+				second    => $dt->{second} // 0,
+				time_zone => 'Europe/Berlin',
+			);
+		};
+		if ($@) {
+			warn(
+"Departure $departure->{servingLine}{stateless}: Invalid departure dateTIme: $@"
+			);
+		}
 	}
 
 	if ( my $dt = $departure->{realDateTime} ) {
-		$real_dt = DateTime->new(
-			year      => $dt->{year},
-			month     => $dt->{month},
-			day       => $dt->{day},
-			hour      => $dt->{hour},
-			minute    => $dt->{minute},
-			second    => $dt->{second} // 0,
-			time_zone => 'Europe/Berlin',
-		);
+		eval {
+			$real_dt = DateTime->new(
+				year      => $dt->{year},
+				month     => $dt->{month},
+				day       => $dt->{day},
+				hour      => $dt->{hour},
+				minute    => $dt->{minute},
+				second    => $dt->{second} // 0,
+				time_zone => 'Europe/Berlin',
+			);
+		};
+		if ($@) {
+			warn(
+"Departure $departure->{servingLine}{stateless}: Invalid departure dateTIme: $@"
+			);
+		}
 	}
 
 	my @hints
@@ -110,6 +124,20 @@ sub new {
 	return $ref;
 }
 
+sub parse_datetime {
+	my ( $self, $strp, $str ) = @_;
+
+	my $ret;
+	eval { $ret = $strp->parse_datetime($str); };
+	if ($@) {
+		my $strp_str = $strp->pattern;
+		warn(
+"Departure $self->{stateless}: Cannot parse '$str' with '$strp_str': $@"
+		);
+	}
+	return $ret;
+}
+
 sub parse_route {
 	my ( $self, $stop_seq, $requested_id ) = @_;
 	my @ret;
@@ -132,20 +160,27 @@ sub parse_route {
 		my $ref = $stop->{ref};
 		my ( $arr, $dep );
 
-		if ( $ref->{arrDateTimeSec} ) {
-			$arr = $self->{strp_stopseq_s}
-			  ->parse_datetime( $ref->{arrDateTimeSec} );
-		}
-		elsif ( $ref->{arrDateTime} ) {
-			$arr = $self->{strp_stopseq}->parse_datetime( $ref->{arrDateTime} );
-		}
+		eval {
+			if ( $ref->{arrDateTimeSec} ) {
+				$arr = $self->parse_datetime( $self->{strp_stopseq_s},
+					$ref->{arrDateTimeSec} );
+			}
+			elsif ( $ref->{arrDateTime} ) {
+				$arr = $self->parse_datetime( $self->{strp_stopseq},
+					$ref->{arrDateTime} );
+			}
 
-		if ( $ref->{depDateTimeSec} ) {
-			$dep = $self->{strp_stopseq_s}
-			  ->parse_datetime( $ref->{depDateTimeSec} );
-		}
-		elsif ( $ref->{depDateTime} ) {
-			$dep = $self->{strp_stopseq}->parse_datetime( $ref->{depDateTime} );
+			if ( $ref->{depDateTimeSec} ) {
+				$dep = $self->parse_datetime( $self->{strp_stopseq_s},
+					$ref->{depDateTimeSec} );
+			}
+			elsif ( $ref->{depDateTime} ) {
+				$dep = $self->parse_datetime( $self->{strp_stopseq},
+					$ref->{depDateTime} );
+			}
+		};
+		if ($@) {
+			warn;
 		}
 
 		push(

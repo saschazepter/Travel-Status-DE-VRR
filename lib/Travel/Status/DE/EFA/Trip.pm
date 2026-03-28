@@ -144,7 +144,13 @@ sub parse_dt {
 	my ( $self, $value ) = @_;
 
 	if ($value) {
-		my $dt = $self->{strptime_obj}->parse_datetime($value);
+		my $dt;
+		eval { $dt = $self->{strptime_obj}->parse_datetime($value); };
+		if ($@) {
+			my $strp_str = $self->{strptime_obj}->pattern;
+			warn(
+				"Trip $self->{id}: Cannot parse '$value' with '$strp_str': $@");
+		}
 		if ($dt) {
 			return $dt->set_time_zone('Europe/Berlin');
 		}
